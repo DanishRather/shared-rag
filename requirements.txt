@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+python-dotenv
+peewee
+langchain
+langchain-core
+langchain-community
+langchain-huggingface
+langchain-google-genai
+langchain-text-splitters
+unstructured
+chromadb
+huggingface_hub
+google-generativeai
+sentence-transformers
