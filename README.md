@@ -1,6 +1,6 @@
-# Ease My Cure: A Healthcare RAG Chatbot
+#  A Healthcare RAG Chatbot
 
-"Ease My Cure" is an intelligent AI assistant designed to provide accurate, user-friendly, and easy-to-understand information about hospitals, doctors, treatments, and specialties. This project leverages Retrieval Augmented Generation (RAG) to deliver relevant healthcare information based on a pre-ingested knowledge base.
+"" is an intelligent AI assistant designed to provide accurate, user-friendly, and easy-to-understand information about hospitals, doctors, treatments, and specialties. This project leverages Retrieval Augmented Generation (RAG) to deliver relevant healthcare information based on a pre-ingested knowledge base.
 
 ## Features
 
@@ -173,6 +173,6 @@ To add more data to the RAG system:
 
 (Add guidelines for contributing if this were an open-source project)
 
-## License
-
-(Specify the project's license)
+## To Run this RAG update the data folder by pasting your pdf data or excel... 
+## make shure to update the env file with your credential:
+## To run the this RAG update Create Virtual environement and run the fallowing command: uvicorn main:app --reload
