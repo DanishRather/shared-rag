@@ -8,7 +8,7 @@ from langchain.schema import AIMessage, HumanMessage
 from langchain.memory import ConversationBufferWindowMemory
 from services.prompt import base_prompt
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
-from sentence_transformers import CrossEncoder
+#from sentence_transformers import CrossEncoder
 
 from services.import_service import vectorstore_object, embedder_object
 from models.messages import message_service_object
@@ -37,7 +37,7 @@ class ChatEngine:
         self.folder_path = os.getenv("DATA_FOLDER_PATH")
         self.embedding_model_name = os.getenv("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
         self.chroma_persist_dir = os.getenv("CHROMA_DB_PATH")
-        self.cross_encoder =  CrossEncoder(os.getenv("CROSS_ENCODER"))
+ #       self.cross_encoder =  CrossEncoder(os.getenv("CROSS_ENCODER"))
 
         logger.info("ChatEngine initialized.")
 
@@ -77,35 +77,35 @@ class ChatEngine:
         return RunnableLambda(self._format_inputs) | base_prompt | self.llm | self.parser
     
     
-    def re_ranker(self, result_vectors: list, query: str) -> list:
-        # Create query-document pairs
-        query_doc_pairs = [(query, doc.page_content) for doc in result_vectors]
+    # def re_ranker(self, result_vectors: list, query: str) -> list:
+    #     # Create query-document pairs
+    #     query_doc_pairs = [(query, doc.page_content) for doc in result_vectors]
 
-        # Get relevance scores
-        scores = self.cross_encoder.predict(query_doc_pairs)
-        print(scores)
+    #     # Get relevance scores
+    #     scores = self.cross_encoder.predict(query_doc_pairs)
+    #     print(scores)
 
-        # Pair scores with original documents
-        scored_docs = list(zip(scores, result_vectors))
+    #     # Pair scores with original documents
+    #     scored_docs = list(zip(scores, result_vectors))
 
-        # Sort in descending order of score
-        sorted_scored_docs = sorted(scored_docs, key=lambda x: x[0], reverse=True)
+    #     # Sort in descending order of score
+    #     sorted_scored_docs = sorted(scored_docs, key=lambda x: x[0], reverse=True)
 
-        # Separate positives and negatives
-        positive_docs = [doc for score, doc in sorted_scored_docs if score > 0]
-        negative_docs = [doc for score, doc in sorted_scored_docs if score <= 0]
+    #     # Separate positives and negatives
+    #     positive_docs = [doc for score, doc in sorted_scored_docs if score > 0]
+    #     negative_docs = [doc for score, doc in sorted_scored_docs if score <= 0]
 
-        # Include one negative if available
-        if negative_docs:
-            positive_docs.append(negative_docs[0])
+    #     # Include one negative if available
+    #     if negative_docs:
+    #         positive_docs.append(negative_docs[0])
 
-        return positive_docs  # List of Document objects
+    #     return positive_docs  # List of Document objects
 
 
 
     def retrieve_context(self, query: str, k: int = 14) -> str:
         result_vectors = self.vectorstore_object.similarity_search(query=query, k=k)
-        context = self.re_ranker(result_vectors,query)
+        context = result_vectors
         print(len(context),type(context))
         context = "\n".join([doc.page_content for doc in context])
         #context = "\n".join([doc.page_content for doc in result_vectors])
