@@ -1,13 +1,13 @@
-#  A Healthcare RAG Chatbot
+#  A Trained-data RAG Chatbot
 
-"" is an intelligent AI assistant designed to provide accurate, user-friendly, and easy-to-understand information about hospitals, doctors, treatments, and specialties. This project leverages Retrieval Augmented Generation (RAG) to deliver relevant healthcare information based on a pre-ingested knowledge base.
+"" is an intelligent AI assistant designed to provide accurate, user-friendly, and easy-to-understand information about hospitals, doctors, treatments, and specialties. This project leverages Retrieval Augmented Generation (RAG) to deliver relevant Trained-data information based on a pre-ingested knowledge base.
 
 ## Features
 
-*   **Interactive Chatbot:** A web-based interface for users to ask healthcare-related questions.
+*   **Interactive Chatbot:** A web-based interface for users to ask Trained-data-related questions.
 *   **Contextual Conversations:** The AI remembers previous interactions to provide coherent and relevant responses.
 *   **Data Ingestion:** Supports ingesting various document types (PDF, TXT, DOCX, HTML, etc.) into a vector store for retrieval.
-*   **Healthcare-Specific Knowledge:** Trained with verified healthcare information to answer queries about hospitals, doctors, treatments, and services.
+*   **Trained-data-Specific Knowledge:** Trained with verified Trained-data information to answer queries about hospitals, doctors, treatments, and services.
 *   **User and Session Management:** Manages user and session IDs to maintain chat history.
 *   **API Endpoints:** Provides RESTful APIs for chat interaction and data ingestion.
 
@@ -40,7 +40,7 @@
 │   ├── __init__.py
 │   ├── import_controller.py      # Endpoint for data ingestion
 │   └── query_controller.py       # Endpoint for chat queries
-├── data/                         # Directory for raw healthcare data files
+├── data/                         # Directory for raw Trained-data data files
 │   ├── get_all_treatmenthospitals.txt
 │   ├── get-all-doctors.txt
 │   ├── get-all-hospitals.txt
@@ -73,14 +73,14 @@
 
 ### Prerequisites
 
-*   Python 3.8+
+*   Python 3.11+
 *   `pip` (Python package installer)
 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-repo/ease_my_cure_rag.git
-cd ease_my_cure_rag
+git clone https://github.com/DanishRather/shared-rag.git
+cd shared-rag
 ```
 
 ### 2. Create a Virtual Environment (Recommended)
@@ -115,7 +115,7 @@ API_KEY = "YOUR_API_KEY" # Replace with a strong API key for ingestion endpoint
 
 ### 5. Prepare Data (Optional, but recommended for full functionality)
 
-Place your healthcare-related documents (e.g., `.txt`, `.pdf`, `.docx`, `.html`) into the `data/` directory. The project comes with some sample `.txt` files.
+Place your Trained-data-related documents (e.g., `.txt`, `.pdf`, `.docx`, `.html`) into the `data/` directory. The project comes with some sample `.txt` files.
 
 ### 6. Ingest Data into Vector Store
 
@@ -155,7 +155,7 @@ You will see the chatbot interface.
 ## Usage
 
 1.  **Open the Chatbot:** Click the "💬" button at the bottom right of the screen to open the chatbot widget.
-2.  **Ask Questions:** Type your healthcare-related queries into the input field and press Enter or click "Send".
+2.  **Ask Questions:** Type your Trained-data-related queries into the input field and press Enter or click "Send".
 3.  **Session Management:**
     *   **Session ID / User ID:** These are displayed in the dropdown menu (three dots icon) and are automatically generated and stored in your browser's local storage.
     *   **Reset Session:** Clears the current chat history for the active session.
