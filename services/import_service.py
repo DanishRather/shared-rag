@@ -34,7 +34,6 @@ SUPPORTED_EXTENSIONS = {
 }
 
 
-
 class UniversalFileLoader:
     """
     Loads and parses supported files from a directory.
@@ -63,34 +62,42 @@ class UniversalFileLoader:
             with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
 
-            json_data = json.loads(content)
-            readable_text = self._convert_json_to_text(json_data)
+            try:
+                json_data = json.loads(content)
+                readable_text = self._convert_json_to_text(json_data)
 
-            temp_path = file_path.parent / f"__parsed__{file_path.name}"
-            with open(temp_path, "w", encoding="utf-8") as f:
-                f.write(readable_text)
+                temp_path = file_path.parent / f"__parsed__{file_path.name}"
+                with open(temp_path, "w", encoding="utf-8") as f:
+                    f.write(readable_text)
 
-            loader = UnstructuredFileLoader(str(temp_path))
-            docs = loader.load()
-            temp_path.unlink()
-            return docs
+                loader = UnstructuredFileLoader(str(temp_path))
+                docs = loader.load()
+                temp_path.unlink()
+                return docs
 
-        except json.JSONDecodeError:
-            logger.warning(f"{file_path.name} is plain text. Loading normally.")
-            loader = UnstructuredFileLoader(str(file_path))
-            return loader.load()
+            except json.JSONDecodeError:
+                logger.warning(f"{file_path.name} is plain text or invalid JSON. Loading normally.")
+                loader = UnstructuredFileLoader(str(file_path))
+                return loader.load()
+
+        except Exception as e:
+            logger.error(f"Error reading {file_path.name}: {e}")
+            return []
 
     def _handle_csv_file(self, file_path: Path) -> List[Document]:
         documents = []
-        with open(file_path, "r", encoding="utf-8") as f:
-            reader = csv.DictReader(f)
-            for idx, row in enumerate(reader):
-                content = "\n".join(f"{k}: {v}" for k, v in row.items()).strip()
-                if not content:
-                    logger.warning(f"Skipping empty row {idx} in {file_path.name}")
-                    continue
-                documents.append(Document(page_content=content, metadata={"source": file_path.name, "row": idx}))
-        logger.info(f"Loaded {len(documents)} rows from CSV: {file_path.name}")
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for idx, row in enumerate(reader):
+                    content = "\n".join(f"{k}: {v}" for k, v in row.items()).strip()
+                    if not content:
+                        logger.warning(f"Skipping empty row {idx} in {file_path.name}")
+                        continue
+                    documents.append(Document(page_content=content, metadata={"source": file_path.name, "row": idx}))
+            logger.info(f"Loaded {len(documents)} rows from CSV: {file_path.name}")
+        except Exception as e:
+            logger.error(f"Error loading CSV {file_path.name}: {e}")
         return documents
 
     def load_documents(self, count: int = None) -> List[Document]:
@@ -109,13 +116,23 @@ class UniversalFileLoader:
                         docs = self._handle_txt_file(file)
                     elif ext == ".csv":
                         docs = self._handle_csv_file(file)
+                    elif ext == ".json":
+                        # Support standalone .json files
+                        with open(file, "r", encoding="utf-8") as f:
+                            json_data = json.load(f)
+                        readable_text = self._convert_json_to_text(json_data)
+                        docs = [Document(page_content=readable_text, metadata={"source": file.name})]
                     else:
                         loader = UnstructuredFileLoader(str(file))
                         docs = loader.load()
 
-                    documents.extend(docs)
-                    file_count += 1
-                    logger.info(f"Loaded file: {file.name} ({len(docs)} documents)")
+                    if docs:
+                        documents.extend(docs)
+                        file_count += 1
+                        logger.info(f"Loaded file: {file.name} ({len(docs)} documents)")
+                    else:
+                        logger.warning(f"No content extracted from: {file.name}")
+
                 except Exception as e:
                     logger.warning(f"Failed to load {file.name}: {e}")
             else:
