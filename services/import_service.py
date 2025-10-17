@@ -7,13 +7,17 @@ from pathlib import Path
 from typing import List, Optional, Dict,Callable, Any
 
 from dotenv import load_dotenv
-from langchain_community.document_loaders import UnstructuredFileLoader
+from langchain_community.document_loaders import (
+    UnstructuredFileLoader,
+    PyPDFLoader,
+    PDFPlumberLoader
+)
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
-
+import pdfplumber
 load_dotenv()
 
 EMBEDDING_MODEL_NAME = os.getenv("MODEL_NAME", "sentence-transformers/all-MiniLM-L6-v2")
@@ -100,6 +104,48 @@ class UniversalFileLoader:
             logger.error(f"Error loading CSV {file_path.name}: {e}")
         return documents
 
+    def _handle_pdf_file(self, file_path: Path) -> List[Document]:
+        """
+        Load a PDF file and return a list of Documents.
+        Tries PyPDFLoader first; if no text is extracted, falls back to pdfplumber.
+        """
+        try:
+            # --- Try PyPDFLoader ---
+            loader = PyPDFLoader(str(file_path))
+
+            docs = loader.load()
+            # Filter out empty page_content
+            docs = [doc for doc in docs if doc.page_content.strip()]
+            
+            if docs:
+                return docs
+            
+            # --- Fallback: pdfplumber ---
+            full_text = ""
+            with pdfplumber.open(str(file_path)) as pdf:
+                for page in pdf.pages:
+                    page_text = page.extract_text() or ""
+                    if page_text.strip():
+                        full_text += page_text + "\n\n"
+
+            full_text = full_text.strip()
+            if not full_text:
+                logger.warning(f"No text extracted from PDF: {file_path.name}")
+                return []
+
+            # Save to temp file and load via UnstructuredFileLoader for consistency
+            temp_path = file_path.parent / f"__parsed__{file_path.name}.txt"
+            with open(temp_path, "w", encoding="utf-8") as f:
+                f.write(full_text)
+
+            loader = UnstructuredFileLoader(str(temp_path))
+            docs = loader.load()
+            temp_path.unlink()
+            return docs
+
+        except Exception as e:
+            logger.error(f"Error reading PDF {file_path.name}: {e}")
+            return []
     def load_documents(self, count: int = None) -> List[Document]:
         documents = []
         file_count = 0
@@ -116,6 +162,9 @@ class UniversalFileLoader:
                         docs = self._handle_txt_file(file)
                     elif ext == ".csv":
                         docs = self._handle_csv_file(file)
+                    elif ext == ".pdf":
+                        docs = self._handle_pdf_file(file)
+                        logger.info(f'{len(docs)} documents loaded from PDF file: {file.name}')
                     elif ext == ".json":
                         # Support standalone .json files
                         with open(file, "r", encoding="utf-8") as f:
@@ -206,7 +255,7 @@ class Embedder:
 
     def embed_documents(self, docs: List[Document]) -> List[Dict[str, Any]]:
         for i, doc in enumerate(docs):
-            print(f"Document {i} metadata:", doc.metadata)                                                                                      
+            logger.info(f"Document {i} metadata:", doc.metadata)                                                                                      
         texts = [doc.page_content for doc in docs]
         embeddings = self.model.embed_documents(texts)
         ids = [str(uuid.uuid4()) for _ in docs]
